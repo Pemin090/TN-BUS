@@ -1,0 +1,6 @@
+{
+  "name": "TN Bus Traffic Alert & Arrival",
+  "description": "Real-time 3D transit intelligence platform tracking TNSTC, SETC, and MTC fleets with district-wise bus availability across all 38 districts of Tamil Nadu.",
+  "requestFramePermissions": ["geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,28 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: 'Outfit', 'Anek Tamil', 'Plus Jakarta Sans', system-ui, sans-serif;
+  --font-display: 'Chakra Petch', 'Outfit', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+/* Custom distinctive transit typographic styles */
+.font-display {
+  font-family: 'Chakra Petch', 'Outfit', sans-serif;
+}
+
+.font-mono-transit {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.font-tamil {
+  font-family: 'Anek Tamil', sans-serif;
+}
+
+/* 3D Perspective card container utilities */
+.perspective-800 {
+  perspective: 800px;
+}
+.preserve-3d {
+  transform-style: preserve-3d;
+}
