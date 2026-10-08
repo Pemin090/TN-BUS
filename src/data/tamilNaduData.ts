@@ -349,6 +349,34 @@ export const BUS_STOPS: BusStop[] = [
     connectingRoutes: ['TNSTC-204', 'NH-83']
   },
   {
+    id: 'stop-pollachi-central',
+    nameEn: 'Pollachi Central Bus Stand',
+    nameTa: 'பொள்ளாச்சி மத்திய பேருந்து நிலையம்',
+    district: 'Coimbatore',
+    districtTa: 'கோயம்புத்தூர்',
+    location: { lat: 10.6580, lng: 77.0080 },
+    isMajorHub: true,
+    isSafeNightStop: true,
+    hasShelter: true,
+    lightingQuality: 'high',
+    currentCrowdScore: 85,
+    connectingRoutes: ['101', '205', 'TNSTC-204']
+  },
+  {
+    id: 'stop-udumalpet-central',
+    nameEn: 'Udumalpet Central Bus Stand',
+    nameTa: 'உடுமலைப்பேட்டை மத்திய பேருந்து நிலையம்',
+    district: 'Tiruppur',
+    districtTa: 'திருப்பூர்',
+    location: { lat: 10.5850, lng: 77.2480 },
+    isMajorHub: true,
+    isSafeNightStop: true,
+    hasShelter: true,
+    lightingQuality: 'high',
+    currentCrowdScore: 78,
+    connectingRoutes: ['205', 'TNSTC-204']
+  },
+  {
     id: 'stop-tiruppur-new',
     nameEn: 'Tiruppur New Bus Stand (Avinashi Road)',
     nameTa: 'திருப்பூர் புதிய பேருந்து நிலையம்',
@@ -781,6 +809,71 @@ const BASE_BUS_ROUTES: BusRoute[] = [
       { lat: 13.0067, lng: 80.2023 },
       { lat: 13.0827, lng: 80.2810 }
     ]
+  },
+
+  // 8. TNSTC 101: Coimbatore Gandhipuram to Pollachi Central Point-to-Point
+  {
+    id: 'route-cbe-101',
+    routeNumber: '101',
+    nameEn: 'Coimbatore (Gandhipuram) ⇄ Pollachi Central Point-to-Point',
+    nameTa: 'கோவை (காந்திபுரம்) ⇄ பொள்ளாச்சி இடைநில்லா விரைவு',
+    originEn: 'Coimbatore Gandhipuram',
+    originTa: 'கோவை காந்திபுரம்',
+    destinationEn: 'Pollachi Central',
+    destinationTa: 'பொள்ளாச்சி',
+    color: '#10b981',
+    averageTravelTimeMinutes: 52,
+    reliabilityScore: 96,
+    fareRupees: 42,
+    isWomenPinkBus: false,
+    frequencyMinutes: 10,
+    operatorCategory: 'TNSTC',
+    tnstcDivision: 'Coimbatore',
+    serviceType: 'Point-to-Point',
+    districtsTraversed: ['Coimbatore'],
+    stops: [
+      { stopId: 'stop-cbe-gandhipuram', distanceFromStartKm: 0, scheduledMinutesFromStart: 0 },
+      { stopId: 'stop-pollachi-central', distanceFromStartKm: 42, scheduledMinutesFromStart: 52 }
+    ],
+    polyline: [
+      { lat: 11.0183, lng: 76.9667 }, // Gandhipuram
+      { lat: 10.9800, lng: 76.9700 }, // Ukkadam
+      { lat: 10.8700, lng: 76.9850 }, // Kinathukadavu
+      { lat: 10.6580, lng: 77.0080 }  // Pollachi
+    ]
+  },
+
+  // 9. TNSTC 205: Coimbatore Gandhipuram to Pollachi to Udumalpet
+  {
+    id: 'route-cbe-205',
+    routeNumber: '205',
+    nameEn: 'Coimbatore (Gandhipuram) ⇄ Pollachi ⇄ Udumalpet Express',
+    nameTa: 'கோவை (காந்திபுரம்) ⇄ பொள்ளாச்சி ⇄ உடுமலைப்பேட்டை விரைவு',
+    originEn: 'Coimbatore Gandhipuram',
+    originTa: 'கோவை காந்திபுரம்',
+    destinationEn: 'Udumalpet Central',
+    destinationTa: 'உடுமலைப்பேட்டை',
+    color: '#06b6d4',
+    averageTravelTimeMinutes: 76,
+    reliabilityScore: 93,
+    fareRupees: 65,
+    isWomenPinkBus: false,
+    frequencyMinutes: 15,
+    operatorCategory: 'TNSTC',
+    tnstcDivision: 'Coimbatore',
+    serviceType: 'Express',
+    districtsTraversed: ['Coimbatore', 'Tiruppur'],
+    stops: [
+      { stopId: 'stop-cbe-gandhipuram', distanceFromStartKm: 0, scheduledMinutesFromStart: 0 },
+      { stopId: 'stop-pollachi-central', distanceFromStartKm: 42, scheduledMinutesFromStart: 50 },
+      { stopId: 'stop-udumalpet-central', distanceFromStartKm: 70, scheduledMinutesFromStart: 76 }
+    ],
+    polyline: [
+      { lat: 11.0183, lng: 76.9667 }, // Gandhipuram
+      { lat: 10.9800, lng: 76.9700 }, // Ukkadam
+      { lat: 10.6580, lng: 77.0080 }, // Pollachi
+      { lat: 10.5850, lng: 77.2480 }  // Udumalpet
+    ]
   }
 ];
 
@@ -788,6 +881,118 @@ export const BUS_ROUTES: BusRoute[] = [...BASE_BUS_ROUTES, ...EXTENDED_ROUTES];
 
 // Live Simulated Buses Operating Across Tamil Nadu
 const BASE_INITIAL_BUSES: Bus[] = [
+  // Bus 101: Gandhipuram to Pollachi (6 min ETA, Medium crowd)
+  {
+    id: 'bus-cbe-101-01',
+    registrationNumber: 'TN 38 N 2101',
+    routeId: 'route-cbe-101',
+    routeNumber: '101',
+    operator: 'TNSTC Coimbatore (Sungam Depot)',
+    operatorTa: 'அரசுப் போக்குவரத்துக் கழகம் (கோவை சுங்கம்)',
+    operatorCategory: 'TNSTC',
+    tnstcDivision: 'Coimbatore',
+    serviceType: 'Point-to-Point',
+    district: 'Coimbatore',
+    districtTa: 'கோயம்புத்தூர்',
+    districtsTraversed: ['Coimbatore'],
+    availableSeats: 14,
+    totalSeats: 52,
+    availabilityStatus: 'available',
+    fareRupees: 42,
+    isWomenPinkBus: false,
+    latitude: 10.7400,
+    longitude: 76.9950,
+    bearing: 175,
+    speedKmh: 46,
+    occupancy: 'medium',
+    comfortScore: 88,
+    reliabilityScore: 96,
+    status: 'on_time',
+    currentStopIndex: 0,
+    nextStopId: 'stop-pollachi-central',
+    etaNextStopMinutes: 6,
+    delayMinutes: 0,
+    predictedDelayMinutes: 1,
+    delayReasonEn: 'Express cruising via Kinathukadavu bypass',
+    delayReasonTa: 'கிணத்துக்கடவு புறவழிச்சாலையில் சீரான வேகம்',
+    isAc: false,
+    lastUpdated: 'Just now',
+    stationaryDurationMinutes: 0,
+    routeProgressRatio: 0.82,
+    telemetry: {
+      vehicleModel: 'Ashok Leyland 12M Kongu Fast Passenger',
+      depotName: 'Sungam-II Depot [CBE-04]',
+      depotNameTa: 'சுங்கம்-2 பணிமனை [CBE-04]',
+      depotCode: 'CBE-SNG',
+      driverName: 'S. Shanmugam',
+      driverEmpId: 'TN-CBE-31940',
+      driverRating: 4.8,
+      passengerCount: 38,
+      totalSeats: 52,
+      fuelOrBatteryPercent: 78,
+      fuelType: 'diesel',
+      remainingRangeKm: 380,
+      engineTempCelsius: 87,
+      elevationMeters: 410
+    }
+  },
+
+  // Bus 205: Gandhipuram to Udumalpet via Pollachi (12 min ETA, Low crowd)
+  {
+    id: 'bus-cbe-205-01',
+    registrationNumber: 'TN 38 N 2205',
+    routeId: 'route-cbe-205',
+    routeNumber: '205',
+    operator: 'TNSTC Coimbatore (Pollachi Unit)',
+    operatorTa: 'அரசுப் போக்குவரத்துக் கழகம் (பொள்ளாச்சி பிரிவு)',
+    operatorCategory: 'TNSTC',
+    tnstcDivision: 'Coimbatore',
+    serviceType: 'Express',
+    district: 'Coimbatore',
+    districtTa: 'கோயம்புத்தூர்',
+    districtsTraversed: ['Coimbatore', 'Tiruppur'],
+    availableSeats: 26,
+    totalSeats: 52,
+    availabilityStatus: 'available',
+    fareRupees: 65,
+    isWomenPinkBus: false,
+    latitude: 10.6650,
+    longitude: 77.0150,
+    bearing: 110,
+    speedKmh: 48,
+    occupancy: 'low',
+    comfortScore: 94,
+    reliabilityScore: 95,
+    status: 'on_time',
+    currentStopIndex: 1,
+    nextStopId: 'stop-udumalpet-central',
+    etaNextStopMinutes: 12,
+    delayMinutes: 0,
+    predictedDelayMinutes: 0,
+    delayReasonEn: 'On time, approaching Pollachi outbound junction',
+    delayReasonTa: 'நேரத்திற்கு இயக்கப்படுகிறது, பொள்ளாச்சி சந்திப்பு அருகில்',
+    isAc: false,
+    lastUpdated: 'Just now',
+    stationaryDurationMinutes: 0,
+    routeProgressRatio: 0.60,
+    telemetry: {
+      vehicleModel: 'Tata 1618 LPO AC Deluxe',
+      depotName: 'Pollachi Central Depot [POL-01]',
+      depotNameTa: 'பொள்ளாச்சி மத்திய பணிமனை [POL-01]',
+      depotCode: 'CBE-POL',
+      driverName: 'M. Arumugam',
+      driverEmpId: 'TN-CBE-40112',
+      driverRating: 4.9,
+      passengerCount: 26,
+      totalSeats: 52,
+      fuelOrBatteryPercent: 84,
+      fuelType: 'diesel',
+      remainingRangeKm: 460,
+      engineTempCelsius: 86,
+      elevationMeters: 360
+    }
+  },
+
   // Bus 1: SETC 101 on GST Highway (Cruising near Villupuram)
   {
     id: 'bus-setc-101-01',

@@ -126,17 +126,56 @@ export const StopDetailsCard: React.FC<StopDetailsCardProps> = ({
 
                   {/* Primary Arrival ETA */}
                   <div className="text-right">
-                    <div className="text-base font-black text-amber-400 flex items-center gap-1 justify-end">
-                      <span>{prediction.etaMinutes} min away</span>
+                    <div className="text-base font-black text-amber-400 flex items-center gap-1 justify-end font-mono">
+                      <span>{prediction.etaMinutes} min</span>
                     </div>
-                    <div className="text-[10px] text-slate-400">
+                    <div className="text-[10px] text-slate-400 font-mono">
                       {language === 'ta' ? 'அடுத்தது:' : 'Next following:'} {prediction.followingBusEtaMinutes} min
                     </div>
                   </div>
                 </div>
 
+                {/* Destination & Bus Service Type Badge Row */}
+                <div className="flex items-center justify-between text-xs pt-1">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-slate-400">{language === 'ta' ? 'சேருமிடம்:' : 'Destination:'}</span>
+                    <span className="font-bold text-white">
+                      {language === 'ta' ? route.destinationTa : route.destinationEn}
+                    </span>
+                  </div>
+
+                  <span className="text-[10px] px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700 font-medium">
+                    {bus.serviceType || 'Express'}
+                  </span>
+                </div>
+
                 {/* Prediction Metrics Bar */}
-                <div className="pt-2 border-t border-slate-800/80 grid grid-cols-3 gap-2 text-[10px]">
+                <div className="pt-2 border-t border-slate-800/80 grid grid-cols-4 gap-1.5 text-[10px]">
+                  <div>
+                    <div className="text-slate-400">{language === 'ta' ? 'கூட்டம்' : 'Crowd'}</div>
+                    <div className={`font-bold flex items-center gap-1 ${
+                      bus.occupancy === 'low'
+                        ? 'text-emerald-400'
+                        : bus.occupancy === 'medium'
+                        ? 'text-amber-400'
+                        : 'text-rose-400'
+                    }`}>
+                      <span className={`w-1.5 h-1.5 rounded-full ${
+                        bus.occupancy === 'low'
+                          ? 'bg-emerald-400'
+                          : bus.occupancy === 'medium'
+                          ? 'bg-amber-400'
+                          : 'bg-rose-500'
+                      }`} />
+                      <span>
+                        {bus.occupancy === 'low'
+                          ? language === 'ta' ? 'குறைவு 🟢' : 'Low Crowd 🟢'
+                          : bus.occupancy === 'medium'
+                          ? language === 'ta' ? 'மிதம் 🟡' : 'Medium Crowd 🟡'
+                          : language === 'ta' ? 'அதிகம் 🔴' : 'High Crowd 🔴'}
+                      </span>
+                    </div>
+                  </div>
                   <div>
                     <div className="text-slate-400">{language === 'ta' ? 'தாமதம்' : 'Traffic Delay'}</div>
                     <div className="font-bold text-amber-300">

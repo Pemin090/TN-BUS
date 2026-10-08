@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Bus, BusRoute, BusStop, Language, TrafficIncident, WeatherRiskArea } from '../types';
 import { DepotAndCrewView } from './DepotAndCrewView';
+import { NextStopIntelligenceCard } from './NextStopIntelligenceCard';
+import { BusIotTelemetryCard } from './BusIotTelemetryCard';
 import {
   X,
   Navigation,
@@ -20,7 +22,8 @@ import {
   Layers,
   Sparkles,
   Building2,
-  Phone
+  Phone,
+  Cpu
 } from 'lucide-react';
 import { translations } from '../i18n/translations';
 
@@ -52,7 +55,7 @@ export const BusDetailsCard: React.FC<BusDetailsCardProps> = ({
   language
 }) => {
   const t = translations[language];
-  const [activeCardTab, setActiveCardTab] = useState<'telemetry' | 'crew_depot' | 'route'>('telemetry');
+  const [activeCardTab, setActiveCardTab] = useState<'next_stop' | 'telemetry' | 'iot' | 'crew_depot' | 'route'>('next_stop');
   const [selectedDestStopId, setSelectedDestStopId] = useState<string>(
     route?.stops[route.stops.length - 1]?.stopId || ''
   );
@@ -168,22 +171,46 @@ export const BusDetailsCard: React.FC<BusDetailsCardProps> = ({
       </div>
 
       {/* Segmented Sub-Navigation for Bus Details */}
-      <div className="flex items-center gap-1 p-1 bg-slate-950/80 rounded-xl border border-slate-800">
+      <div className="flex items-center gap-1 p-1 bg-slate-950/80 rounded-xl border border-slate-800 overflow-x-auto scrollbar-none">
+        <button
+          onClick={() => setActiveCardTab('next_stop')}
+          className={`py-1.5 px-2.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1 whitespace-nowrap transition-all ${
+            activeCardTab === 'next_stop'
+              ? 'bg-sky-600 text-white shadow-sm'
+              : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+          }`}
+        >
+          <Zap className="w-3.5 h-3.5 text-amber-400" />
+          <span>{language === 'ta' ? 'அடுத்த நிறுத்தம் & AI ETA' : 'Next Stop & AI ETA'}</span>
+        </button>
+
         <button
           onClick={() => setActiveCardTab('telemetry')}
-          className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all ${
+          className={`py-1.5 px-2.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1 whitespace-nowrap transition-all ${
             activeCardTab === 'telemetry'
               ? 'bg-sky-600 text-white shadow-sm'
               : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
           }`}
         >
           <Sparkles className="w-3.5 h-3.5" />
-          <span>{language === 'ta' ? '3D & வேகம்' : '3D Telemetry'}</span>
+          <span>{language === 'ta' ? '3D வேகம்' : '3D Chassis'}</span>
+        </button>
+
+        <button
+          onClick={() => setActiveCardTab('iot')}
+          className={`py-1.5 px-2.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1 whitespace-nowrap transition-all ${
+            activeCardTab === 'iot'
+              ? 'bg-emerald-600 text-white shadow-sm'
+              : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+          }`}
+        >
+          <Cpu className="w-3.5 h-3.5 text-emerald-400" />
+          <span>{language === 'ta' ? 'IoT உணரிகள் & நலம்' : 'IoT & Health'}</span>
         </button>
 
         <button
           onClick={() => setActiveCardTab('crew_depot')}
-          className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all ${
+          className={`py-1.5 px-2.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1 whitespace-nowrap transition-all ${
             activeCardTab === 'crew_depot'
               ? 'bg-amber-600 text-white shadow-sm'
               : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
@@ -191,21 +218,38 @@ export const BusDetailsCard: React.FC<BusDetailsCardProps> = ({
         >
           <Building2 className="w-3.5 h-3.5 text-amber-400" />
           <span>{language === 'ta' ? 'பணிமனை & பணியாளர்கள்' : 'Depot & Crew'}</span>
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
         </button>
 
         <button
           onClick={() => setActiveCardTab('route')}
-          className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all ${
+          className={`py-1.5 px-2.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1 whitespace-nowrap transition-all ${
             activeCardTab === 'route'
               ? 'bg-purple-600 text-white shadow-sm'
               : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
           }`}
         >
           <Navigation className="w-3.5 h-3.5" />
-          <span>{language === 'ta' ? 'நிறுத்தங்கள்' : 'Stops & Route'}</span>
+          <span>{language === 'ta' ? 'நிறுத்தங்கள்' : 'Stops'}</span>
         </button>
       </div>
+
+      {/* TAB 0: NEXT STOP INTELLIGENCE & AI ETA */}
+      {activeCardTab === 'next_stop' && (
+        <NextStopIntelligenceCard
+          bus={bus}
+          route={route}
+          stops={stops}
+          incidents={incidents}
+          weatherRisks={weatherRisks}
+          language={language}
+          onSelectStop={onSelectStop}
+        />
+      )}
+
+      {/* TAB 0.5: IoT TELEMETRY & PREDICTIVE FLEET HEALTH */}
+      {activeCardTab === 'iot' && (
+        <BusIotTelemetryCard bus={bus} language={language} />
+      )}
 
       {/* TAB 1: CREW & DEPOT ROSTER */}
       {activeCardTab === 'crew_depot' && (

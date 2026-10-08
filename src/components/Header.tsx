@@ -1,19 +1,21 @@
 import React from 'react';
 import { Language, BusLiveryTheme } from '../types';
 import { translations } from '../i18n/translations';
-import { Bell, PlayCircle, Shield, AlertTriangle, BarChart3, Sliders, Globe, Bus, Image as ImageIcon } from 'lucide-react';
+import { Bell, PlayCircle, Shield, AlertTriangle, BarChart3, Sliders, Globe, Bus, Image as ImageIcon, Bot, Sparkles, Zap } from 'lucide-react';
 import { BusLiverySelector } from './BusLiverySelector';
 
 interface HeaderProps {
   language: Language;
   onToggleLanguage: () => void;
-  activeTab: 'map' | 'routes' | 'alerts' | 'admin' | 'safety' | 'availability';
-  onSelectTab: (tab: 'map' | 'routes' | 'alerts' | 'admin' | 'safety' | 'availability') => void;
+  activeTab: 'map' | 'routes' | 'alerts' | 'admin' | 'safety' | 'availability' | 'analytics';
+  onSelectTab: (tab: 'map' | 'routes' | 'alerts' | 'admin' | 'safety' | 'availability' | 'analytics') => void;
   unreadNotificationsCount: number;
   onOpenNotifications: () => void;
   onOpenReportModal: () => void;
   onOpenSimulationDrawer: () => void;
   onTriggerDemoScenario: () => void;
+  onOpenAssistant: () => void;
+  onOpenHackathonDemo: () => void;
   currentTheme: BusLiveryTheme;
   onChangeTheme: (theme: BusLiveryTheme) => void;
   backdropMode: 'cinematic' | 'subtle' | 'road_only';
@@ -30,6 +32,8 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenReportModal,
   onOpenSimulationDrawer,
   onTriggerDemoScenario,
+  onOpenAssistant,
+  onOpenHackathonDemo,
   currentTheme,
   onChangeTheme,
   backdropMode,
@@ -60,16 +64,16 @@ export const Header: React.FC<HeaderProps> = ({
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-sm sm:text-base font-display font-extrabold tracking-tight text-white flex items-center gap-1.5">
-              <span>{language === 'ta' ? 'தமிழ்நாடு பேருந்து நேரலை' : 'TN Bus Traffic Alert & Arrival'}</span>
+              <span>{language === 'ta' ? 'தமிழ்நாடு AI ஸ்மார்ட் பேருந்து தளம்' : 'Tamil Nadu AI Smart Bus Transit'}</span>
             </h1>
             <span className="text-[10px] font-display font-bold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 hidden sm:inline-block">
-              MTC / TNSTC / SETC
+              38 DISTRICTS • AIS-140
             </span>
           </div>
           <p className="text-[11px] text-slate-400 hidden sm:block font-sans">
             {language === 'ta'
-              ? 'தமிழ்நாடு முழுவதும் நேரலை வருகைக் கணிப்பு & 3D போக்குவரத்து நுண்ணறிவு தளம்'
-              : 'Real-time 3D transit intelligence & predictive arrivals across all Tamil Nadu corridors'}
+              ? 'தமிழ்நாடு முழுவதும் நேரலை ஜிபிஎஸ் & AI வருகைக் கணிப்பு தளம்'
+              : 'Next-generation AI transit intelligence & predictive arrivals across Tamil Nadu'}
           </p>
         </div>
       </div>
@@ -84,7 +88,7 @@ export const Header: React.FC<HeaderProps> = ({
               : 'text-slate-400 hover:text-white'
           }`}
         >
-          {language === 'ta' ? 'வரைபடம் & நேரலை' : 'Live Map'}
+          {language === 'ta' ? 'நேரலை வரைபடம்' : 'Live Map'}
         </button>
         <button
           onClick={() => onSelectTab('availability')}
@@ -94,9 +98,9 @@ export const Header: React.FC<HeaderProps> = ({
               : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
           }`}
         >
-          <span>{language === 'ta' ? '38 மாவட்டங்கள் & பேருந்துகள்' : '38 Districts & Fleet'}</span>
+          <span>{language === 'ta' ? '38 மாவட்டங்கள்' : '38 Districts'}</span>
           <span className="text-[10px] px-1 py-0.2 rounded bg-amber-400/20 text-amber-300 font-bold">
-            TNSTC/SETC
+            Fleet
           </span>
         </button>
         <button
@@ -107,7 +111,7 @@ export const Header: React.FC<HeaderProps> = ({
               : 'text-slate-400 hover:text-white'
           }`}
         >
-          {language === 'ta' ? 'வழித்தட ஒப்பீடு' : 'Route Compare'}
+          {language === 'ta' ? 'வழித்தட AI' : 'Smart Routes'}
         </button>
         <button
           onClick={() => onSelectTab('alerts')}
@@ -117,7 +121,18 @@ export const Header: React.FC<HeaderProps> = ({
               : 'text-slate-400 hover:text-white'
           }`}
         >
-          {language === 'ta' ? 'எச்சரிக்கைகள்' : 'Traffic Alerts'}
+          {language === 'ta' ? 'எச்சரிக்கைகள்' : 'Alerts'}
+        </button>
+        <button
+          onClick={() => onSelectTab('analytics')}
+          className={`px-3 py-1.5 rounded-lg font-semibold transition-all flex items-center gap-1 ${
+            activeTab === 'analytics'
+              ? 'bg-purple-600 text-white shadow'
+              : 'text-slate-400 hover:text-white'
+          }`}
+        >
+          <BarChart3 className="w-3.5 h-3.5" />
+          <span>{language === 'ta' ? 'AI பகுப்பாய்வு' : 'AI Analytics'}</span>
         </button>
         <button
           onClick={() => onSelectTab('admin')}
@@ -127,12 +142,32 @@ export const Header: React.FC<HeaderProps> = ({
               : 'text-slate-400 hover:text-white'
           }`}
         >
-          {language === 'ta' ? 'நிர்வாக மையம்' : 'Admin Center'}
+          {language === 'ta' ? 'நிர்வாகம்' : 'Admin'}
         </button>
       </nav>
 
       {/* Action Buttons */}
       <div className="flex items-center gap-1.5 sm:gap-2">
+        {/* AI Travel Assistant Trigger Button */}
+        <button
+          onClick={onOpenAssistant}
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-sky-600 via-indigo-600 to-purple-600 hover:from-sky-500 hover:to-indigo-500 text-white font-extrabold text-xs rounded-xl shadow-lg shadow-sky-500/25 transition-all transform active:scale-95"
+          title="Open Tamil Nadu AI Travel Assistant"
+        >
+          <Bot className="w-3.5 h-3.5" />
+          <span className="hidden sm:inline">{language === 'ta' ? 'AI உதவியாளர்' : 'AI Assistant'}</span>
+        </button>
+
+        {/* Hackathon Demo Presentation Trigger Button */}
+        <button
+          onClick={onOpenHackathonDemo}
+          className="hidden lg:flex items-center gap-1 px-2.5 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs rounded-xl shadow transition-all active:scale-95"
+          title="Open Hackathon Demo Presentation Mode"
+        >
+          <Zap className="w-3.5 h-3.5 fill-slate-950" />
+          <span>{language === 'ta' ? 'டெமோ காட்சி' : 'Demo Mode'}</span>
+        </button>
+
         {/* Realistic Livery Switcher */}
         <BusLiverySelector
           currentTheme={currentTheme}
@@ -144,22 +179,9 @@ export const Header: React.FC<HeaderProps> = ({
         <button
           onClick={onCycleBackdropMode}
           className="flex items-center gap-1 px-2.5 py-1.5 bg-slate-900/90 hover:bg-slate-800 text-slate-200 border border-slate-700/80 font-semibold text-xs rounded-xl transition-all"
-          title={`Background: ${backdropMode.toUpperCase()} (Click to toggle Cinematic Terminal, Subtle Depth, or Road Only)`}
+          title={`Background: ${backdropMode.toUpperCase()} (Click to toggle)`}
         >
           <ImageIcon className="w-3.5 h-3.5 text-sky-400" />
-          <span className="hidden xl:inline text-[11px] font-mono">
-            {backdropMode === 'cinematic' ? 'Terminal' : backdropMode === 'subtle' ? 'Subtle' : 'Road'}
-          </span>
-        </button>
-
-        {/* Run Tambaram -> Guindy Demo Button */}
-        <button
-          onClick={onTriggerDemoScenario}
-          className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-extrabold text-xs rounded-xl shadow-md transition-all active:scale-95"
-          title="Simulate Tambaram to Guindy route comparison and Pallavaram bottleneck"
-        >
-          <PlayCircle className="w-4 h-4 fill-slate-950 text-amber-400" />
-          <span>{language === 'ta' ? 'செயல்முறை' : 'Demo'}</span>
         </button>
 
         {/* Report Incident */}
@@ -209,3 +231,4 @@ export const Header: React.FC<HeaderProps> = ({
     </header>
   );
 };
+

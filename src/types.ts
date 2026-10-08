@@ -351,3 +351,100 @@ export interface RouteCrewWarning {
   resolutionNote?: string;
   lastUpdated: string;
 }
+
+export interface AiEtaResult {
+  formattedEta: string; // e.g. "8:42 AM"
+  etaMinutes: number;
+  confidencePercent: number; // e.g. 92%
+  expectedDelayMinutes: number; // e.g. +4 min
+  delaySeverity: 'none' | 'minor' | 'moderate' | 'severe';
+  delayReasonEn: string;
+  delayReasonTa: string;
+  factors: {
+    nameEn: string;
+    nameTa: string;
+    impactMinutes: number;
+    category: 'traffic' | 'weather' | 'stops' | 'peak_hour' | 'speed';
+  }[];
+  isSimulated: boolean;
+}
+
+export interface SmartRouteScore {
+  routeId: string;
+  routeNumber: string;
+  nameEn: string;
+  nameTa: string;
+  aiScore: number; // /100 e.g. 94/100
+  travelTimeFormatted: string; // e.g. "1h 38m"
+  travelTimeMinutes: number;
+  expectedDelayMinutes: number;
+  crowdLevel: CrowdLevel;
+  crowdPercent: number;
+  reliabilityPercent: number; // e.g. 93%
+  fareRupees: number;
+  stopCount: number;
+  recommendationTag: 'fastest' | 'cheapest' | 'least_crowded' | 'most_reliable' | 'fewest_stops' | 'balanced';
+  tagLabelEn: string;
+  tagLabelTa: string;
+  isWomenPinkBus?: boolean;
+}
+
+export interface CrowdPredictionResult {
+  currentCrowdPercent: number; // e.g. 72%
+  currentLevel: CrowdLevel; // 'low' | 'medium' | 'high' | 'very_high'
+  predictedNextStopPercent: number; // e.g. 84%
+  predictedLevel: CrowdLevel;
+  confidenceScore: number;
+  peakContextEn: string;
+  peakContextTa: string;
+  isSimulated: boolean;
+}
+
+export interface DelayDetectionAlert {
+  isDelayed: boolean;
+  normalTravelTimeMinutes: number;
+  predictedTravelTimeMinutes: number;
+  delayMinutes: number;
+  reasonEn: string;
+  reasonTa: string;
+  suggestedAlternatives: {
+    busId?: string;
+    busNumber: string;
+    routeId: string;
+    titleEn: string;
+    titleTa: string;
+    savingMinutes: number;
+    type: 'alternative_bus' | 'alternative_route' | 'later_bus' | 'faster_route';
+  }[];
+}
+
+export interface BusIotTelemetry {
+  passengerCount: number;
+  capacityTotal: number;
+  seatsAvailable: number;
+  occupancyPercent: number;
+  frontDoorStatus: 'closed' | 'open';
+  rearDoorStatus: 'closed' | 'open';
+  opticalSensorCount: number;
+  irBeamInCount: number;
+  irBeamOutCount: number;
+  weightLoadKg: number;
+  maxWeightLoadKg: number;
+  isDemoSensor: boolean;
+}
+
+export interface PredictiveMaintenanceData {
+  healthScore: number; // 0-100 e.g. 87
+  status: 'EXCELLENT' | 'GOOD' | 'ATTENTION' | 'CRITICAL';
+  engineHealthPercent: number;
+  coolantTempCelsius: number;
+  oilPressurePsi: number;
+  batteryVoltage: number;
+  batteryHealthPercent: number;
+  brakeWearPercent: number;
+  tyrePressurePsi: number[]; // 6 wheels
+  nextServiceKm: number;
+  odometerKm: number;
+  lastServiceDate: string;
+  isDemoData: boolean;
+}

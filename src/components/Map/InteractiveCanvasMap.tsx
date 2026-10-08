@@ -397,17 +397,26 @@ export const InteractiveCanvasMap: React.FC<CanvasMapProps> = ({
         }
       });
 
-      // 6. Active Bus Routes with 3D Flowing Energy Pulses
+      // 6. Active Bus Routes with 3D Flowing Energy Pulses & Completed vs Remaining Route
       routes.forEach((route) => {
-        const isSelected = selectedRoute?.id === route.id;
+        const isSelected = selectedRoute?.id === route.id || selectedBus?.routeId === route.id;
         const baseRouteWidth = isSelected ? Math.max(5.5, (zoom - 5) * 2.2) : Math.max(3, (zoom - 5) * 1.3);
 
-        // Render Highway Segments with Live Traffic Color
+        const activeBusOnRoute = (selectedBus && selectedBus.routeId === route.id)
+          ? selectedBus
+          : buses.find((b) => b.routeId === route.id);
+        const progressRatio = activeBusOnRoute?.routeProgressRatio ?? 0.4;
+        const totalSegments = Math.max(1, route.polyline.length - 1);
+        const currentSegmentThreshold = progressRatio * totalSegments;
+
+        // Render Highway Segments with Live Traffic Color & Completed vs Remaining styling
         for (let i = 0; i < route.polyline.length - 1; i++) {
           const p1 = project3D(route.polyline[i].lat, route.polyline[i].lng, 0, width, height);
           const p2 = project3D(route.polyline[i + 1].lat, route.polyline[i + 1].lng, 0, width, height);
 
           if (!p1.visible || !p2.visible) continue;
+
+          const isCompletedSegment = isSelected && i < currentSegmentThreshold;
 
           const midLat = (route.polyline[i].lat + route.polyline[i + 1].lat) / 2;
           const isNearPallavaram = Math.abs(midLat - 12.9675) < 0.02;
@@ -416,27 +425,39 @@ export const InteractiveCanvasMap: React.FC<CanvasMapProps> = ({
           ctx.lineWidth = baseRouteWidth * p1.scale;
           ctx.lineCap = 'round';
           ctx.lineJoin = 'round';
+
+          if (isCompletedSegment) {
+            // Completed route segment: Dimmed / secondary dashed style
+            ctx.setLineDash([5, 4]);
+            ctx.strokeStyle = 'rgba(100, 116, 139, 0.45)';
+          } else {
+            // Remaining route segment: Glowing active highway color
+            ctx.setLineDash([]);
+            let segColor = '#10b981'; // Green free flow
+            if (isNearPallavaram || isNearSalemToll) segColor = '#ef4444'; // Red jam
+            else if (route.routeNumber === 'SETC 101' && midLat > 12.5) segColor = '#f59e0b'; // Amber
+
+            ctx.strokeStyle = showTraffic ? segColor : (route.color || '#0284c7');
+          }
+
           ctx.beginPath();
           ctx.moveTo(p1.x, p1.y);
           ctx.lineTo(p2.x, p2.y);
-
-          let segColor = '#10b981'; // Green free flow
-          if (isNearPallavaram || isNearSalemToll) segColor = '#ef4444'; // Red jam
-          else if (route.routeNumber === 'SETC 101' && midLat > 12.5) segColor = '#f59e0b'; // Amber
-
-          ctx.strokeStyle = showTraffic ? segColor : (route.color || '#0284c7');
           ctx.stroke();
+          ctx.setLineDash([]);
 
-          // 3D Animated Traveling Light Pulse along this highway segment
-          const pulseSpeed = isNearPallavaram ? 0.3 : 1.2;
-          const pulseOffset = (t * pulseSpeed + i * 0.25) % 1.0;
-          const pulseX = p1.x + (p2.x - p1.x) * pulseOffset;
-          const pulseY = p1.y + (p2.y - p1.y) * pulseOffset;
+          // 3D Animated Traveling Light Pulse only along Remaining Route segments
+          if (!isCompletedSegment || !isSelected) {
+            const pulseSpeed = isNearPallavaram ? 0.3 : 1.2;
+            const pulseOffset = (t * pulseSpeed + i * 0.25) % 1.0;
+            const pulseX = p1.x + (p2.x - p1.x) * pulseOffset;
+            const pulseY = p1.y + (p2.y - p1.y) * pulseOffset;
 
-          ctx.fillStyle = isNearPallavaram ? '#fca5a5' : '#a7f3d0';
-          ctx.beginPath();
-          ctx.arc(pulseX, pulseY, 2.5 * p1.scale, 0, Math.PI * 2);
-          ctx.fill();
+            ctx.fillStyle = isNearPallavaram ? '#fca5a5' : '#a7f3d0';
+            ctx.beginPath();
+            ctx.arc(pulseX, pulseY, 2.5 * p1.scale, 0, Math.PI * 2);
+            ctx.fill();
+          }
         }
       });
 
@@ -945,7 +966,7 @@ export const InteractiveCanvasMap: React.FC<CanvasMapProps> = ({
           </div>
         )}
 
-        {/* Zoom & Reset North */}
+        {/* Zoom & Reset North & Locate Me */}
         <div className="flex flex-col gap-1.5 mt-1">
           <button
             onClick={() => setZoom((z) => Math.min(17, z + 1))}
@@ -963,6 +984,29 @@ export const InteractiveCanvasMap: React.FC<CanvasMapProps> = ({
           </button>
           <button
             onClick={() => {
+              if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                  (pos) => {
+                    setCenter({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+                    setZoom(12);
+                  },
+                  () => {
+                    setCenter({ lat: 11.0183, lng: 76.9667 }); // Gandhipuram / Coimbatore
+                    setZoom(10);
+                  }
+                );
+              } else {
+                setCenter({ lat: 11.0183, lng: 76.9667 });
+                setZoom(10);
+              }
+            }}
+            className="w-9 h-9 rounded-xl bg-slate-900/90 text-sky-400 hover:bg-slate-800 flex items-center justify-center border border-slate-800 shadow-xl backdrop-blur transition-colors"
+            title="Locate Me / Centered Stop"
+          >
+            <Navigation className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => {
               setBearing(0);
               setPitch(is3DMode ? 48 : 0);
             }}
@@ -971,6 +1015,44 @@ export const InteractiveCanvasMap: React.FC<CanvasMapProps> = ({
           >
             <Compass className="w-4 h-4" />
           </button>
+        </div>
+      </div>
+
+      {/* Bottom HUD: Live Bus Direction & Completed vs Remaining Route Legend */}
+      <div className="absolute bottom-3 left-3 z-20 flex flex-wrap items-center gap-2 pointer-events-none">
+        <div className="pointer-events-auto p-2 bg-slate-900/90 backdrop-blur-md rounded-xl border border-slate-800 shadow-2xl flex items-center gap-3 text-xs">
+          {/* Direction Indicator */}
+          <div className="flex items-center gap-1.5 font-mono">
+            <div
+              className="w-5 h-5 rounded-full bg-slate-800 flex items-center justify-center border border-slate-700 text-amber-400"
+              style={{ transform: `rotate(${(selectedBus?.bearing || 0) - bearing}deg)` }}
+            >
+              <Navigation className="w-3 h-3 fill-amber-400" />
+            </div>
+            <span className="font-bold text-white">
+              {selectedBus ? `${selectedBus.routeNumber} (${selectedBus.bearing}°)` : `${Math.round(bearing)}° Orbit`}
+            </span>
+          </div>
+
+          <div className="w-[1px] h-3.5 bg-slate-800" />
+
+          {/* Route Status Legend */}
+          <div className="flex items-center gap-2.5 text-[10px] font-mono text-slate-300">
+            <span className="flex items-center gap-1">
+              <span className="w-3 h-1 rounded-full border border-dashed border-slate-400 opacity-60" />
+              {language === 'ta' ? 'முடிந்த பாதை' : 'Completed Route'}
+            </span>
+            <span className="flex items-center gap-1">
+              <span className="w-3 h-1 rounded-full bg-emerald-400 shadow-[0_0_6px_#10b981]" />
+              {language === 'ta' ? 'மீதமுள்ள பாதை' : 'Remaining Route'}
+            </span>
+          </div>
+
+          <div className="w-[1px] h-3.5 bg-slate-800" />
+
+          <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-300 border border-amber-500/25">
+            SIMULATION MODE
+          </span>
         </div>
       </div>
     </div>

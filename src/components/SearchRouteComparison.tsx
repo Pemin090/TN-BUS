@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Bus, BusRoute, BusStop, Language, TrafficIncident } from '../types';
-import { ArrowRight, Clock, Users, Award, ShieldCheck, Leaf, AlertTriangle, ChevronRight, Zap, Sparkles } from 'lucide-react';
+import { ArrowRight, Clock, Users, Award, ShieldCheck, Leaf, AlertTriangle, ChevronRight, Zap, Sparkles, Mic } from 'lucide-react';
 import { calculateGreenTravelMetrics } from '../services/predictionEngine';
+import { calculateSmartRouteScore } from '../services/aiEtaEngine';
 
 interface SearchRouteComparisonProps {
   buses: Bus[];
@@ -26,6 +27,7 @@ export const SearchRouteComparison: React.FC<SearchRouteComparisonProps> = ({
 }) => {
   const [origin, setOrigin] = useState<string>('stop-kcbt-kilambakkam');
   const [destination, setDestination] = useState<string>('stop-madurai-mattuthavani');
+  const [isVoiceListening, setIsVoiceListening] = useState(false);
 
   // Find relevant buses based on selected route or default
   const activeRoute = routes.find(
@@ -44,6 +46,7 @@ export const SearchRouteComparison: React.FC<SearchRouteComparisonProps> = ({
   );
 
   const greenMetrics = calculateGreenTravelMetrics(activeRoute ? activeRoute.averageTravelTimeMinutes * 0.8 : 35);
+  const smartScore = calculateSmartRouteScore(activeRoute, primaryBus);
 
   const handleApplyPreset = (origId: string, destId: string, routeNum: string) => {
     setOrigin(origId);
@@ -56,22 +59,91 @@ export const SearchRouteComparison: React.FC<SearchRouteComparisonProps> = ({
     }
   };
 
+  // Voice Search Handler (English & Tamil)
+  const handleVoiceSearch = () => {
+    const SpeechRecognition =
+      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+      alert(
+        language === 'ta'
+          ? 'உங்கள் உலாவியில் குரல் தேடல் ஆதரிக்கப்படவில்லை.'
+          : 'Voice search is not supported in this browser.'
+      );
+      return;
+    }
+
+    if (isVoiceListening) {
+      setIsVoiceListening(false);
+      return;
+    }
+
+    try {
+      const rec = new SpeechRecognition();
+      rec.lang = language === 'ta' ? 'ta-IN' : 'en-IN';
+      rec.continuous = false;
+      rec.interimResults = false;
+
+      rec.onstart = () => setIsVoiceListening(true);
+      rec.onresult = (e: any) => {
+        const text = e.results[0][0].transcript.toLowerCase();
+        setIsVoiceListening(false);
+
+        if (text.includes('pollachi') || text.includes('பொள்ளாச்சி')) {
+          handleApplyPreset('stop-cbe-gandhipuram', 'stop-pollachi-central', '101');
+        } else if (text.includes('madurai') || text.includes('மதுரை')) {
+          handleApplyPreset('stop-kcbt-kilambakkam', 'stop-madurai-mattuthavani', 'SETC 101');
+        } else if (text.includes('coimbatore') || text.includes('கோவை')) {
+          handleApplyPreset('stop-cmbt-koyambedu', 'stop-cbe-gandhipuram', 'TNSTC 301');
+        } else if (text.includes('guindy') || text.includes('கிண்டி') || text.includes('tambaram') || text.includes('தாம்பரம்')) {
+          handleApplyPreset('stop-tambaram', 'stop-guindy', '21G');
+        }
+      };
+      rec.onerror = () => setIsVoiceListening(false);
+      rec.onend = () => setIsVoiceListening(false);
+      rec.start();
+    } catch {
+      setIsVoiceListening(false);
+    }
+  };
+
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl text-slate-100 flex flex-col gap-4">
+    <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl text-slate-100 flex flex-col gap-4 font-sans">
       {/* Search Header */}
       <div>
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-extrabold uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
             <Zap className="w-4 h-4" />
-            <span>{language === 'ta' ? 'அனைத்து தமிழ்நாடு வழித்தட ஒப்பீடு' : 'All Tamil Nadu Route Finder & Comparison'}</span>
+            <span>{language === 'ta' ? 'அனைத்து தமிழ்நாடு ஸ்மார்ட் வழித்தட ஒப்பீடு' : 'Smart Route AI & Corridor Finder'}</span>
           </h3>
-          <span className="text-[10px] text-slate-400 font-semibold bg-slate-800 px-2 py-0.5 rounded-full">
-            38 Districts Covered
-          </span>
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={handleVoiceSearch}
+              className={`p-1.5 rounded-lg border transition-all flex items-center gap-1 text-xs ${
+                isVoiceListening
+                  ? 'bg-rose-500 text-white border-rose-400 animate-pulse'
+                  : 'bg-slate-800 text-slate-300 border-slate-700 hover:text-white'
+              }`}
+              title="Voice Search (English & Tamil)"
+            >
+              <Mic className="w-3.5 h-3.5" />
+              <span className="text-[10px] hidden sm:inline">{language === 'ta' ? 'குரல் தேடல்' : 'Voice Search'}</span>
+            </button>
+            <span className="text-[10px] text-slate-400 font-semibold bg-slate-800 px-2 py-0.5 rounded-full">
+              38 Districts
+            </span>
+          </div>
         </div>
 
         {/* Quick Corridor Presets Bar */}
         <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none mt-2.5 pb-1">
+          <button
+            onClick={() => handleApplyPreset('stop-cbe-gandhipuram', 'stop-pollachi-central', '101')}
+            className="px-2.5 py-1 rounded-lg bg-emerald-950/70 border border-emerald-500/50 text-emerald-300 text-[11px] font-bold hover:bg-emerald-900/60 whitespace-nowrap transition-colors flex items-center gap-1"
+          >
+            <span>🎯</span>
+            <span>{language === 'ta' ? 'காந்திபுரம் ⇄ பொள்ளாச்சி (101)' : 'Gandhipuram ⇄ Pollachi (101)'}</span>
+          </button>
           <button
             onClick={() => handleApplyPreset('stop-kcbt-kilambakkam', 'stop-madurai-mattuthavani', 'SETC 101')}
             className="px-2.5 py-1 rounded-lg bg-sky-950/60 border border-sky-800/60 text-sky-300 text-[11px] font-semibold hover:bg-sky-900/60 whitespace-nowrap transition-colors"
@@ -136,6 +208,43 @@ export const SearchRouteComparison: React.FC<SearchRouteComparisonProps> = ({
         </div>
       </div>
 
+      {/* AI Route Score / 100 Showcase Tile */}
+      <div className="bg-gradient-to-r from-indigo-950/60 via-slate-950 to-sky-950/60 border border-indigo-500/40 rounded-xl p-3 flex items-center justify-between gap-3 shadow-md">
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-tr from-indigo-600 to-sky-500 flex items-center justify-center font-black text-xl font-mono text-white shadow-lg shadow-indigo-500/20">
+            {smartScore.aiScore}
+          </div>
+          <div>
+            <div className="flex items-center gap-1.5">
+              <span className="text-[10px] font-mono uppercase font-bold text-sky-400">
+                AI ROUTE SCORE /100
+              </span>
+              <span className="text-[10px] px-1.5 py-0.2 rounded bg-indigo-500/20 text-indigo-300 font-bold">
+                {language === 'ta' ? smartScore.tagLabelTa : smartScore.tagLabelEn}
+              </span>
+            </div>
+            <h4 className="font-extrabold text-xs text-white">
+              {language === 'ta' ? activeRoute?.nameTa : activeRoute?.nameEn}
+            </h4>
+            <div className="text-[10px] text-slate-300 flex items-center gap-2 mt-0.5 font-mono">
+              <span>Time: <strong>{smartScore.travelTimeFormatted}</strong></span>
+              <span>Delay: <strong className="text-amber-400">+{smartScore.expectedDelayMinutes}m</strong></span>
+              <span>Reliability: <strong className="text-emerald-400">{smartScore.reliabilityPercent}%</strong></span>
+            </div>
+          </div>
+        </div>
+
+        <button
+          onClick={() => {
+            if (activeRoute) onSelectRoute(activeRoute);
+            if (primaryBus) onSelectBus(primaryBus);
+          }}
+          className="px-3 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold shadow transition-all shrink-0"
+        >
+          {language === 'ta' ? 'தேர்வு செய்' : 'Select'}
+        </button>
+      </div>
+
       {/* Traffic Alert Banner for this corridor if affected */}
       {activeTrafficJam && (
         <div className="p-3 bg-rose-950/40 border border-rose-600/40 rounded-xl flex items-start gap-2.5 text-xs text-rose-200">
@@ -181,7 +290,7 @@ export const SearchRouteComparison: React.FC<SearchRouteComparisonProps> = ({
               <div className="text-[9px] text-slate-400 uppercase font-display font-semibold">
                 {language === 'ta' ? 'அடுத்த வருகை' : 'Next Arrival'}
               </div>
-              <div className="font-display font-extrabold text-amber-400">{primaryBus?.etaNextStopMinutes || 8} min</div>
+              <div className="font-display font-extrabold text-amber-400 font-mono">{primaryBus?.etaNextStopMinutes || 8} min</div>
             </div>
             <div>
               <div className="text-[9px] text-slate-400 uppercase font-display font-semibold">
@@ -193,13 +302,13 @@ export const SearchRouteComparison: React.FC<SearchRouteComparisonProps> = ({
               <div className="text-[9px] text-slate-400 uppercase font-display font-semibold">
                 {language === 'ta' ? 'நம்பகத்தன்மை' : 'Reliability'}
               </div>
-              <div className="font-display font-bold text-emerald-400">{primaryBus?.reliabilityScore || 92}%</div>
+              <div className="font-display font-bold text-emerald-400 font-mono">{primaryBus?.reliabilityScore || 92}%</div>
             </div>
             <div>
               <div className="text-[9px] text-slate-400 uppercase font-display font-semibold">
                 {language === 'ta' ? 'கட்டணம்' : 'Fare'}
               </div>
-              <div className="font-display font-bold text-sky-400">₹{activeRoute?.fareRupees || 45}</div>
+              <div className="font-display font-bold text-sky-400 font-mono">₹{activeRoute?.fareRupees || 45}</div>
             </div>
           </div>
         </div>
@@ -212,7 +321,7 @@ export const SearchRouteComparison: React.FC<SearchRouteComparisonProps> = ({
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span className="px-2 py-0.5 rounded-md bg-slate-700 text-white font-black text-xs">
+                <span className="px-2.5 py-0.5 rounded-md bg-slate-700 text-white font-black text-xs font-mono">
                   {secondaryBus.routeNumber}
                 </span>
                 <span className="text-xs font-bold text-slate-200 group-hover:text-white transition-colors">
@@ -227,7 +336,7 @@ export const SearchRouteComparison: React.FC<SearchRouteComparisonProps> = ({
             <div className="grid grid-cols-4 gap-1 text-[11px] text-slate-400 pt-1 border-t border-slate-800">
               <div>
                 <span className="text-[9px] uppercase font-semibold block">{language === 'ta' ? 'வருகை' : 'ETA'}</span>
-                <span className="font-bold text-slate-200">{secondaryBus.etaNextStopMinutes} min</span>
+                <span className="font-bold text-slate-200 font-mono">{secondaryBus.etaNextStopMinutes} min</span>
               </div>
               <div>
                 <span className="text-[9px] uppercase font-semibold block">{language === 'ta' ? 'கூட்டம்' : 'Crowd'}</span>
@@ -235,7 +344,7 @@ export const SearchRouteComparison: React.FC<SearchRouteComparisonProps> = ({
               </div>
               <div>
                 <span className="text-[9px] uppercase font-semibold block">{language === 'ta' ? 'வேகம்' : 'Speed'}</span>
-                <span className="font-bold text-slate-200">{secondaryBus.speedKmh} km/h</span>
+                <span className="font-bold text-slate-200 font-mono">{secondaryBus.speedKmh} km/h</span>
               </div>
               <div>
                 <span className="text-[9px] uppercase font-semibold block">{language === 'ta' ? 'நிலை' : 'Status'}</span>
@@ -263,3 +372,4 @@ export const SearchRouteComparison: React.FC<SearchRouteComparisonProps> = ({
     </div>
   );
 };
+export default SearchRouteComparison;

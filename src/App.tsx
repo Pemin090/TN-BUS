@@ -35,6 +35,9 @@ import { DistrictBusAvailabilityExplorer } from './components/DistrictBusAvailab
 import { RealisticBusBackdrop } from './components/RealisticBusBackdrop';
 import { RealisticLedBoard } from './components/RealisticLedBoard';
 import { BusCockpitCluster } from './components/BusCockpitCluster';
+import { AiTravelAssistant } from './components/AiTravelAssistant';
+import { HackathonDemoModal } from './components/HackathonDemoModal';
+import { AiTransportAnalytics } from './components/AiTransportAnalytics';
 import { BusLiveryTheme } from './types';
 import { Sparkles, MapPin, Zap, AlertTriangle, Layers, Building2 } from 'lucide-react';
 
@@ -55,8 +58,12 @@ export default function App() {
     });
   };
 
-  // Navigation tab: 'map' | 'routes' | 'alerts' | 'admin' | 'safety' | 'availability'
-  const [activeTab, setActiveTab] = useState<'map' | 'routes' | 'alerts' | 'admin' | 'safety' | 'availability'>('map');
+  // Navigation tab: 'map' | 'routes' | 'alerts' | 'admin' | 'safety' | 'availability' | 'analytics'
+  const [activeTab, setActiveTab] = useState<'map' | 'routes' | 'alerts' | 'admin' | 'safety' | 'availability' | 'analytics'>('map');
+
+  // AI Assistant & Hackathon Demo Modals
+  const [isAssistantOpen, setIsAssistantOpen] = useState(false);
+  const [isHackathonDemoOpen, setIsHackathonDemoOpen] = useState(false);
 
   // Core Data State
   const [buses, setBuses] = useState<Bus[]>(INITIAL_BUSES);
@@ -327,6 +334,8 @@ export default function App() {
         onOpenReportModal={() => setIsReportModalOpen(true)}
         onOpenSimulationDrawer={() => setIsSimDrawerOpen(true)}
         onTriggerDemoScenario={handleTriggerDemoScenario}
+        onOpenAssistant={() => setIsAssistantOpen(true)}
+        onOpenHackathonDemo={() => setIsHackathonDemoOpen(true)}
         currentTheme={currentTheme}
         onChangeTheme={setCurrentTheme}
         backdropMode={backdropMode}
@@ -547,6 +556,19 @@ export default function App() {
             language={language}
           />
         )}
+
+        {/* Tab 6: AI Transport Intelligence & Fleet Analytics (Phase 18) */}
+        {activeTab === 'analytics' && (
+          <div className="flex-1 p-4 sm:p-6 overflow-y-auto max-w-7xl mx-auto w-full">
+            <AiTransportAnalytics
+              buses={buses}
+              routes={routes}
+              stops={stops}
+              incidents={incidents}
+              language={language}
+            />
+          </div>
+        )}
       </div>
 
       {/* Floating Modals & Drawers */}
@@ -582,11 +604,47 @@ export default function App() {
         language={language}
       />
 
+      {/* AI Travel Assistant Dialog (Phase 8 & Voice Search Phase 12) */}
+      <AiTravelAssistant
+        buses={buses}
+        routes={routes}
+        stops={stops}
+        incidents={incidents}
+        selectedBus={selectedBus}
+        onSelectBus={(bus) => {
+          setSelectedBus(bus);
+          const r = routes.find((route) => route.id === bus.routeId);
+          if (r) setSelectedRoute(r);
+          setActiveTab('map');
+          setIsAssistantOpen(false);
+        }}
+        onSelectRoute={(route) => {
+          setSelectedRoute(route);
+          setActiveTab('map');
+          setIsAssistantOpen(false);
+        }}
+        language={language}
+        isOpen={isAssistantOpen}
+        onClose={() => setIsAssistantOpen(false)}
+      />
+
+      {/* Hackathon Demo Presentation Scenario Modal (Phase 20) */}
+      <HackathonDemoModal
+        isOpen={isHackathonDemoOpen}
+        onClose={() => setIsHackathonDemoOpen(false)}
+        language={language}
+        onSelectBus={(bus) => {
+          setSelectedBus(bus);
+          setActiveTab('map');
+        }}
+      />
+
       {/* Responsive Mobile Bottom Navigation */}
       <MobileBottomNav
         activeTab={activeTab}
         onSelectTab={setActiveTab}
         onOpenSimControls={() => setIsSimDrawerOpen(true)}
+        onOpenAssistant={() => setIsAssistantOpen(true)}
         language={language}
       />
     </div>
